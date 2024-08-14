@@ -1,0 +1,49 @@
+global {
+    check_interval: 600s
+    check_tolerance: 500ms
+
+    wan_interface: auto
+    allow_insecure: false
+
+    log_level: error
+
+    dial_mode: domain
+    disable_waiting_network: true
+    auto_config_kernel_parameter: true
+    sniffing_timeout: 100ms
+}
+
+dns {
+    ipversion_prefer: 4
+
+    upstream {
+        alidns: 'udp://dns.alidns.com:53'
+        googledns: 'tcp+udp://dns.google.com:53'
+    }
+
+    routing {
+        request {
+            qname(geosite:cn) -> alidns
+            fallback: googledns
+        }
+    }
+}
+
+node {
+    socks5: 'socks5://192.168.202.1:1080'
+}
+
+group {
+    proxy {
+        policy: fixed(0)
+    }
+}
+
+routing {
+    pname(NetworkManager, systemd-resolved, dnsmasq, candy, dae) -> must_direct
+    dip(geoip:private, geoip:cn) -> direct
+    domain(geosite:cn) -> direct
+
+    fallback: proxy
+}
+
